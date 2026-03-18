@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment variables
+.env
+server/.env
+client/.env
+
+# Database
+server/driftlog.db
+server/driftlog.db-shm
+server/driftlog.db-wal
+
+# Build
+client/build/
+
+# Logs
+*.log
