@@ -1,15 +1,16 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api'
+  baseURL: process.env.REACT_APP_API_URL 
+    || "/api"
 });
 
-api.interceptors.request.use(config => {
-    const token = localStorage.getItem('driftlog_token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("driftlog_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export default api;
