@@ -18,19 +18,33 @@ function ProfilePage({ userEmail, onAvatarUpdate }) {
     const [showConfirm, setShowConfirm] = useState(false);
 
     useEffect(() => {
-        fetchProfile();
+        const loadProfile = async () => {
+            try {
+                const res = await api.get("/auth/profile");
+                setProfile(res.data);
+                setAvatarPreview(res.data.avatar || "");
+                setAvatar(res.data.avatar || "");
+                setLoading(false);
+            } catch (err) {
+                console.error("Profile load error:", err.response?.data);
+                setMsg("Error loading profile: " + 
+                    (err.response?.data?.message || err.message));
+                setLoading(false);
+            }
+        };
+        loadProfile();
     }, []);
 
-    const fetchProfile = async () => {
+    const handleDeleteAvatar = async () => {
         try {
-            const res = await api.get('/auth/profile');
-            setProfile(res.data);
-            setAvatar(res.data.avatar || '');
-            setAvatarPreview(res.data.avatar || '');
-            setLoading(false);
-        } catch (e) {
-            setMsg('Error loading profile');
-            setLoading(false);
+            await api.put("/auth/delete-avatar");
+            setAvatar("");
+            setAvatarPreview("");
+            if (onAvatarUpdate) onAvatarUpdate("");
+            setMsg("Profile photo removed");
+            setTimeout(() => setMsg(""), 3000);
+        } catch (err) {
+            setMsg("Failed to remove photo");
         }
     };
 
@@ -48,8 +62,8 @@ function ProfilePage({ userEmail, onAvatarUpdate }) {
     const saveProfile = async () => {
         try {
             const res = await api.put('/auth/profile', { name: profile.name, bio: profile.bio, avatar: avatar });
-            setProfile(res.data);
-            if (onAvatarUpdate) onAvatarUpdate(res.data.avatar);
+            setProfile(res.data.user || res.data);
+            if (onAvatarUpdate) onAvatarUpdate(res.data.user?.avatar || res.data.avatar);
             setMsg('Profile saved!');
             setTimeout(() => setMsg(''), 3000);
         } catch (e) {
@@ -117,6 +131,24 @@ function ProfilePage({ userEmail, onAvatarUpdate }) {
                     onChange={handleAvatarChange}
                 />
                 <span style={{ fontSize: '0.85rem', color: 'var(--primary)', cursor: 'pointer', display: 'block' }}>Click avatar to change</span>
+                {avatarPreview && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteAvatar}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--red)",
+                      fontSize: "13px",
+                      cursor: "pointer",
+                      marginTop: "4px",
+                      textDecoration: "underline",
+                      padding: "0"
+                    }}
+                  >
+                    🗑 Remove photo
+                  </button>
+                )}
 
                 {msg && <div style={{ color: 'var(--green)', marginTop: 10 }}>{msg}</div>}
 

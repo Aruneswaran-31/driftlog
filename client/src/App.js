@@ -215,8 +215,11 @@ function App() {
                         </button>
                     </div>
 
-                    <div style={{
-                        width: "36px", height: "36px",
+                    <div
+                      onClick={() => setShowProfile(!showProfile)}
+                      style={{
+                        width: "36px",
+                        height: "36px",
                         borderRadius: "50%",
                         background: "var(--primary)",
                         overflow: "hidden",
@@ -225,14 +228,25 @@ function App() {
                         alignItems: "center",
                         justifyContent: "center",
                         color: "white",
-                        fontWeight: 700
-                    }} onClick={() => setShowProfile(!showProfile)}>
-                        {user.avatar ? (
-                            <img src={user.avatar} alt="avatar"
-                                style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        ) : (
-                            user.name?.charAt(0).toUpperCase()
-                        )}
+                        fontWeight: 700,
+                        fontSize: "16px",
+                        flexShrink: 0,
+                        border: "2px solid var(--border)"
+                      }}
+                    >
+                      {user.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt="avatar"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover"
+                          }}
+                        />
+                      ) : (
+                        user.name?.charAt(0).toUpperCase() || "?"
+                      )}
                     </div>
                     <button className="secondary sm" onClick={() => setDark(!dark)}>
                         {dark ? '☀️ Light' : '🌙 Dark'}
@@ -243,9 +257,10 @@ function App() {
 
             {showProfile ? (
                 <ProfilePage 
+                    user={user}
                     userEmail={user.email} 
                     onAvatarUpdate={(newAvatar) => {
-                        setUser({...user, avatar: newAvatar});
+                        setUser(prev => ({...prev, avatar: newAvatar}));
                     }}
                 />
             ) : (

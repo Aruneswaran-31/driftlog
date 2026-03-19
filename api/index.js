@@ -22,7 +22,8 @@ app.use(cors({
   credentials: false
 }));
 app.options("*", cors());
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 const JWT_SECRET = process.env.JWT_SECRET || "driftlog_secret_2024";
 
@@ -137,21 +138,52 @@ app.post("/api/auth/login", async (req, res) => {
 
 app.get("/api/auth/profile", auth, async (req, res) => {
   try {
-    const result = await pool.query("SELECT id, name, email, bio, avatar FROM users WHERE email = $1", [req.user.email]);
+    const result = await pool.query(
+      "SELECT id, name, email, bio, avatar FROM users WHERE email = $1",
+      [req.user.email]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
     res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
+  } catch (err) {
+    console.error("Profile fetch error:", err.message);
+    res.status(500).json({ message: "Server error: " + err.message });
   }
 });
 
 app.put("/api/auth/profile", auth, async (req, res) => {
-  const { name, bio, avatar } = req.body;
   try {
-    await pool.query("UPDATE users SET name=$1, bio=$2, avatar=$3 WHERE email=$4", [name, bio, avatar, req.user.email]);
-    const result = await pool.query("SELECT id, name, email, bio, avatar FROM users WHERE email = $1", [req.user.email]);
-    res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
+    const { name, bio, avatar } = req.body;
+    const result = await pool.query(
+      `UPDATE users 
+       SET name = $1, bio = $2, avatar = $3 
+       WHERE email = $4
+       RETURNING id, name, email, bio, avatar`,
+      [name, bio, avatar || "", req.user.email]
+    );
+    res.json({ 
+      message: "Profile updated", 
+      user: result.rows[0] 
+    });
+  } catch (err) {
+    console.error("Profile update error:", err.message);
+    res.status(500).json({ 
+      message: "Server error: " + err.message 
+    });
+  }
+});
+
+app.put("/api/auth/delete-avatar", auth, async (req, res) => {
+  try {
+    await pool.query(
+      "UPDATE users SET avatar = '' WHERE email = $1",
+      [req.user.email]
+    );
+    res.json({ message: "Avatar deleted", avatar: "" });
+  } catch (err) {
+    console.error("Delete avatar error:", err.message);
+    res.status(500).json({ message: "Server error: " + err.message });
   }
 });
 
