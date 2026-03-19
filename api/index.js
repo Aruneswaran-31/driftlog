@@ -65,6 +65,23 @@ app.get("/api", (req, res) => {
   res.json({ status: "Driftlog API running" });
 });
 
+app.get("/api/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({ 
+      status: "ok", 
+      db: "connected",
+      env: !!process.env.DATABASE_URL 
+    });
+  } catch(err) {
+    res.status(500).json({ 
+      status: "error", 
+      message: err.message,
+      env: !!process.env.DATABASE_URL
+    });
+  }
+});
+
 const auth = (req, res, next) => {
   const header = req.headers.authorization;
   if (!header) return res.status(401).json("No token");
