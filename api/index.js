@@ -13,12 +13,15 @@ const pool = new Pool({
 });
 
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    /\.vercel\.app$/
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type", 
+    "Authorization"
   ],
-  credentials: true
+  credentials: false
 }));
+app.options("*", cors());
 app.use(express.json({ limit: "10mb" }));
 
 const JWT_SECRET = process.env.JWT_SECRET || "driftlog_secret_2024";
@@ -104,8 +107,11 @@ app.post("/api/auth/register", async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     await pool.query("INSERT INTO users (name, email, password) VALUES ($1, $2, $3)", [name, email, hashed]);
     res.json({ message: "Registered successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
+  } catch (err) {
+    console.error("Register DB error:", err.message);
+    res.status(500).json({ 
+      message: "Server error: " + err.message 
+    });
   }
 });
 
@@ -121,8 +127,11 @@ app.post("/api/auth/login", async (req, res) => {
     
     const token = jwt.sign({ email: user.email, name: user.name }, JWT_SECRET, { expiresIn: "7d" });
     res.json({ token, user: { name: user.name, email: user.email, bio: user.bio, avatar: user.avatar } });
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
+  } catch (err) {
+    console.error("Login DB error:", err.message);
+    res.status(500).json({ 
+      message: "Server error: " + err.message 
+    });
   }
 });
 

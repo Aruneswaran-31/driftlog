@@ -15,7 +15,13 @@ function Register({ onRegister }) {
             await api.post('/auth/register', { name, email, password });
             onRegister();
         } catch (err) {
-            setError(err.response?.data?.error || 'Registration failed. Try again.');
+            console.error("Register error:", err.response?.data);
+            setError(
+                err.response?.data?.message || 
+                err.response?.data || 
+                err.message || 
+                "Server error"
+            );
         }
     };
 

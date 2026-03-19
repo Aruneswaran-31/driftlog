@@ -15,7 +15,13 @@ function Login({ setUser }) {
             localStorage.setItem('driftlog_token', res.data.token);
             setUser(res.data.user);
         } catch (err) {
-            setError(err.response?.data?.error || 'Login failed. Try again.');
+            console.error("Login error:", err.response?.data);
+            setError(
+                err.response?.data?.message || 
+                err.response?.data || 
+                err.message || 
+                "Server error"
+            );
         }
     };
 
