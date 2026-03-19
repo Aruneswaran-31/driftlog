@@ -77,8 +77,11 @@ function ProfilePage({ userEmail, onAvatarUpdate }) {
     if (loading) return <div className="loader"></div>;
 
     const getInitials = (name) => {
-        if (!name) return 'U';
-        return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        if (!name) return "?";
+        return name.split(" ")
+            .map(w => w.charAt(0).toUpperCase())
+            .join("")
+            .substring(0, 2);
     };
 
     return (
@@ -101,7 +104,7 @@ function ProfilePage({ userEmail, onAvatarUpdate }) {
                             />
                         ) : (
                             <span style={{ fontSize: "28px", fontWeight: 700 }}>
-                                {profile.name ? profile.name.charAt(0).toUpperCase() : "?"}
+                                {getInitials(profile.name)}
                             </span>
                         )}
                     </div>
